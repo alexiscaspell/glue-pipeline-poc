@@ -38,7 +38,7 @@ for i in $(find $JOBS_FOLDER/ -maxdepth 1 -type f -name "*.json" -printf '%f\n' 
     jq '.Command.ScriptLocation = "s3://'$BUCKET'/scripts/'$i'.py"' | \
     jq '.DefaultArguments."--TempDir" = "s3://'$BUCKET'/temporary/"' | \
     jq '.DefaultArguments."--spark-event-logs-path" = "s3://'$BUCKET'/sparkHistoryLogs/"' | \
-    jq '.DefaultArguments."--env" = "'$PARAMETERS_ENVIRONMENT'"' | \
+    jq '.DefaultArguments."--env" = "'$PARAMETERS_ENVIRONMENT'"'  > ${JOBS_FOLDER}/normalized/$i${VARIABLES_YAML_CONFIG}.json
 done
 
 # Copia la carpeta normalized al bucket de jobs
