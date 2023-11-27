@@ -1,0 +1,24 @@
+{
+	"Role": "ETL",
+	"Command": {
+		"Name": "glueetl",
+		"ScriptLocation": "s3://mi_bucket/scripts/test.py",
+		"PythonVersion": "3"
+	},
+	"DefaultArguments": {
+		"--TempDir": "s3://mi_bucket/temporary/",
+		"--enable-continuous-cloudwatch-log": "true",
+		"--enable-metrics": "true",
+		"--job-bookmark-option": "job-bookmark-enable",
+		"--job-language": "python",
+		"--enable-job-insights": "false",
+		"--enable-glue-datacatalog": "true",
+		"--enable-spark-ui": "true",
+		"--class": "GlueApp",
+		"--env": "dev"
+	},
+	"Timeout": 2880,
+	"WorkerType": "G.1X",
+	"NumberOfWorkers": 10,
+	"GlueVersion": "3.0"
+}
