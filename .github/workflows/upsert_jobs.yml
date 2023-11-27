@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
 jobs:
 
-  build:
+  upload-jobs:
 
     runs-on: ubuntu-latest
 
@@ -15,5 +15,5 @@ jobs:
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        GLUE_ROLE: ${{ secrets.GLUE_ROLE }}"
+        GLUE_ROLE: ${{ secrets.GLUE_ROLE }}
       run: chmod +x ./scripts/pipeline.sh && ./scripts/pipeline.sh
