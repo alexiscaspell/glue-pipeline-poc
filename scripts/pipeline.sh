@@ -6,9 +6,16 @@ export AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"
 export AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"
 export AWS_DEFAULT_REGION="us-east-1"
 
+CREDENTIALS=$(aws sts assume-role --role-arn $DEPLOYMENT_ROLE --role-session-name aws-role --duration-seconds 900)
+
+export AWS_ACCESS_KEY_ID="$(echo ${CREDENTIALS} | jq -r '.Credentials.AccessKeyId')"
+export AWS_SECRET_ACCESS_KEY="$(echo ${CREDENTIALS} | jq -r '.Credentials.SecretAccessKey')"
+export AWS_SESSION_TOKEN="$(echo ${CREDENTIALS} | jq -r '.Credentials.SessionToken')"
+export AWS_EXPIRATION=$(echo ${CREDENTIALS} | jq -r '.Credentials.Expiration')
+
 PARAMETERS_ENVIRONMENT="dev"
 
-BUCKET="$PARAMETERS_ENVIRONMENT-glue"
+BUCKET="tostado-$PARAMETERS_ENVIRONMENT-glue-bucket"
 GLUE_ROLE="$GLUE_ROLE"
 SOURCE_VERSION=${SOURCE_VERSION:-$(git rev-parse HEAD)}
 
