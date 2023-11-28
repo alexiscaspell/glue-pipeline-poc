@@ -38,7 +38,7 @@ for i in $(find $JOBS_FOLDER/ -maxdepth 1 -type f -name "*.json" -printf '%f\n' 
     jq '.Role = "'$GLUE_ROLE'"' $JOBS_FOLDER/$i.json | \
     jq 'del( .Connections )' | \
     jq '.Command.ScriptLocation = "s3://'$BUCKET'/scripts/'$i'.py"' | \
-    jq '.DefaultArguments."--extra-py-files" = "s3://'${BUCKET}'/library/"' | \
+    jq '.DefaultArguments."--LIBRARY_PATH" = "s3://'${BUCKET}'/library/"' | \
     jq '.DefaultArguments."--TempDir" = "s3://'$BUCKET'/temporary/"' | \
     jq '.DefaultArguments."--spark-event-logs-path" = "s3://'$BUCKET'/sparkHistoryLogs/"' | \
     jq '.DefaultArguments."--env" = "'$ENVIRONMENT'"'  > ${JOBS_FOLDER}/normalized/$i.json
