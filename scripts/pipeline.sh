@@ -28,9 +28,11 @@ aws glue get-jobs | jq -r '.Jobs[].Name' > listjobs.txt
 
 mkdir $JOBS_FOLDER/normalized
 
+zip -r -j library.zip notebooks/library/*.py
+
 #Se copian todos los archivos python a la carpeta de scripts del bucket
 aws s3 cp notebooks/common s3://$BUCKET/scripts --recursive --exclude "*" --include "*.py"
-aws s3 cp notebooks/library s3://$BUCKET/scripts/library --recursive --exclude "*" --include "*.py"
+aws s3 cp library.zip s3://$BUCKET/library --recursive --exclude "*" --include "*.py"
 
 
 # Modifica con jq varios parametros de cada job y los guarda en una carpeta normalized
@@ -38,7 +40,7 @@ for i in $(find $JOBS_FOLDER/ -maxdepth 1 -type f -name "*.json" -printf '%f\n' 
     jq '.Role = "'$GLUE_ROLE'"' $JOBS_FOLDER/$i.json | \
     jq 'del( .Connections )' | \
     jq '.Command.ScriptLocation = "s3://'$BUCKET'/scripts/'$i'.py"' | \
-    jq '.DefaultArguments."--LIBRARY_PATH" = "s3://'${BUCKET}'/library/"' | \
+    jq '.DefaultArguments."--extra-py-files" = "s3://'${BUCKET}'/library/library.zip"' | \
     jq '.DefaultArguments."--TempDir" = "s3://'$BUCKET'/temporary/"' | \
     jq '.DefaultArguments."--spark-event-logs-path" = "s3://'$BUCKET'/sparkHistoryLogs/"' | \
     jq '.DefaultArguments."--env" = "'$ENVIRONMENT'"'  > ${JOBS_FOLDER}/normalized/$i.json

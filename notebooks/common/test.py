@@ -1,10 +1,5 @@
-import sys
-from awsglue.utils import getResolvedOptions
 
-# Get job parameters
-args = getResolvedOptions(sys.argv, ['LIBRARY_PATH'])
+from print_util import imprimir
 
-sys.path.append(args['LIBRARY_PATH'])
-from library.print_util import imprimir
-
+# Import the module from the library
 imprimir("hello world with glue!")
