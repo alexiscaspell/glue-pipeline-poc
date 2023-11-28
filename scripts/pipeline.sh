@@ -28,11 +28,15 @@ aws glue get-jobs | jq -r '.Jobs[].Name' > listjobs.txt
 
 mkdir $JOBS_FOLDER/normalized
 
-zip -r -j library.zip notebooks/library/*.py
+echo "" > notebooks/__init__.py
+
+cd notebooks
+zip -r library.zip /library/ __init__.py
+cd ..
 
 #Se copian todos los archivos python a la carpeta de scripts del bucket
 aws s3 cp notebooks/common s3://$BUCKET/scripts --recursive --exclude "*" --include "*.py"
-aws s3 cp library.zip s3://$BUCKET/library/
+aws s3 cp notebooks/library.zip s3://$BUCKET/library/
 
 
 # Modifica con jq varios parametros de cada job y los guarda en una carpeta normalized
