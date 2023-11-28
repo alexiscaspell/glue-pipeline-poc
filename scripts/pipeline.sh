@@ -32,7 +32,7 @@ zip -r -j library.zip notebooks/library/*.py
 
 #Se copian todos los archivos python a la carpeta de scripts del bucket
 aws s3 cp notebooks/common s3://$BUCKET/scripts --recursive --exclude "*" --include "*.py"
-aws s3 cp library.zip s3://$BUCKET/library --recursive --exclude "*" --include "*.py"
+aws s3 cp library.zip s3://$BUCKET/library
 
 
 # Modifica con jq varios parametros de cada job y los guarda en una carpeta normalized
