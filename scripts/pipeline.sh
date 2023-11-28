@@ -31,7 +31,7 @@ mkdir $JOBS_FOLDER/normalized
 echo "" > notebooks/__init__.py
 
 cd notebooks
-zip -r library.zip /library/ __init__.py
+zip -r library.zip library/ __init__.py
 cd ..
 
 #Se copian todos los archivos python a la carpeta de scripts del bucket
