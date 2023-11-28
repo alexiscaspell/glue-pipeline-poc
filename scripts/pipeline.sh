@@ -28,10 +28,9 @@ aws glue get-jobs | jq -r '.Jobs[].Name' > listjobs.txt
 
 mkdir $JOBS_FOLDER/normalized
 
-#Se copian todos los archivos python que tuvieron cambios a la carpeta de scripts del bucket
-for i in $(git diff-tree --no-commit-id --name-only -r $SOURCE_VERSION -- *.py); do 
-    aws s3 cp $i s3://$BUCKET/scripts/ 
-done
+#Se copian todos los archivos python a la carpeta de scripts del bucket
+aws s3 cp notebooks/ s3://$BUCKET/scripts/ --recursive --exclude "*" --include "*.py"
+
 
 #Se copian todos los archivos jar que tuvieron cambios a la carpeta de library del bucket
 for i in $(git diff-tree --no-commit-id --name-only -r $SOURCE_VERSION -- *.jar); do 
