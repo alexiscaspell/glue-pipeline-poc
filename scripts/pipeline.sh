@@ -13,9 +13,9 @@ export AWS_SECRET_ACCESS_KEY="$(echo ${CREDENTIALS} | jq -r '.Credentials.Secret
 export AWS_SESSION_TOKEN="$(echo ${CREDENTIALS} | jq -r '.Credentials.SessionToken')"
 export AWS_EXPIRATION=$(echo ${CREDENTIALS} | jq -r '.Credentials.Expiration')
 
-PARAMETERS_ENVIRONMENT="dev"
+ENVIRONMENT="dev"
 
-BUCKET="tostado-$PARAMETERS_ENVIRONMENT-glue-bucket"
+BUCKET="tostado-$ENVIRONMENT-glue-bucket"
 GLUE_ROLE="$GLUE_ROLE"
 SOURCE_VERSION=${SOURCE_VERSION:-$(git rev-parse HEAD)}
 
@@ -29,22 +29,19 @@ aws glue get-jobs | jq -r '.Jobs[].Name' > listjobs.txt
 mkdir $JOBS_FOLDER/normalized
 
 #Se copian todos los archivos python a la carpeta de scripts del bucket
-aws s3 cp notebooks/ s3://$BUCKET/scripts/ --recursive --exclude "*" --include "*.py"
+aws s3 cp notebooks/common s3://$BUCKET/scripts/common --recursive --exclude "*" --include "*.py"
+aws s3 cp notebooks/lib s3://$BUCKET/scripts/lib --recursive --exclude "*" --include "*.py"
 
-
-#Se copian todos los archivos jar que tuvieron cambios a la carpeta de library del bucket
-for i in $(git diff-tree --no-commit-id --name-only -r $SOURCE_VERSION -- *.jar); do 
-    aws s3 cp $i s3://$BUCKET/library/ 
-done
 
 # Modifica con jq varios parametros de cada job y los guarda en una carpeta normalized
 for i in $(find $JOBS_FOLDER/ -maxdepth 1 -type f -name "*.json" -printf '%f\n' | sed 's#.json##'); do
     jq '.Role = "'$GLUE_ROLE'"' $JOBS_FOLDER/$i.json | \
     jq 'del( .Connections )' | \
-    jq '.Command.ScriptLocation = "s3://'$BUCKET'/scripts/'$i'.py"' | \
+    jq '.Command.ScriptLocation = "s3://'$BUCKET'/scripts/common/'$i'.py"' | \
+    jq '.DefaultArguments."--extra-py-files" = "s3://'${BUCKET}'/lib/"' | \
     jq '.DefaultArguments."--TempDir" = "s3://'$BUCKET'/temporary/"' | \
     jq '.DefaultArguments."--spark-event-logs-path" = "s3://'$BUCKET'/sparkHistoryLogs/"' | \
-    jq '.DefaultArguments."--env" = "'$PARAMETERS_ENVIRONMENT'"'  > ${JOBS_FOLDER}/normalized/$i${VARIABLES_YAML_CONFIG}.json
+    jq '.DefaultArguments."--env" = "'$ENVIRONMENT'"'  > ${JOBS_FOLDER}/normalized/$i.json
 done
 
 # Copia la carpeta normalized al bucket de jobs
@@ -57,7 +54,7 @@ echo "Upserting jobs ..."
 
 # Lista todos los jobs que estaban en normalized y si estaban creados les quita los tags y actualiza o crea el job
 for i in $(find $JOBS_FOLDER/normalized/ -maxdepth 1 -type f -name "*.json" -printf '%f\n' | sed 's#.json##' ); do 
-    grep -Fxq $i listjobs.txt && jq 'del(.Tags)' $JOBS_FOLDER/normalized/$i.json >> $i.json \
-    && echo "Updating job $i ..." && aws glue update-job --job-name $i --job-update  file://$i.json \
+    grep -Fxq $i listjobs.txt \
+    && echo "Updating job $i ..." && aws glue update-job --job-name $i --job-update  file://$JOBS_FOLDER/normalized/$i.json \
     || echo "Creating job $i ..." && aws glue create-job --name $i --cli-input-json file://$JOBS_FOLDER/normalized/$i.json
 done
